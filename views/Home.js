@@ -17,6 +17,7 @@ import {
 import NavBar from '../components/NavBar';
 import QuizItem from '../components/QuizItem';
 import Footer from '../components/Footer';
+const _ = require('lodash');
 
 class Home extends React.Component {
   constructor(props: Object) {
@@ -31,7 +32,7 @@ class Home extends React.Component {
     return fetch('http://tgryl.pl/quiz/tests')
       .then((response) => response.json())
       .then((json) => {
-        this.setState({quests: json, isLoadedTest: true});
+        this.setState({quests: _.shuffle(json), isLoadedTest: true});
       })
       .catch((error) => {
         console.error(error);

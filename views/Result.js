@@ -63,7 +63,7 @@ export default class Result extends React.Component {
   };
 
   componentDidMount() {
-    return fetch('http://tgryl.pl/quiz/results')
+    return fetch('http://tgryl.pl/quiz/results?last=25')
       .then((response) => response.json())
       .then((json) => {
         this.setState({items: json.reverse()});
