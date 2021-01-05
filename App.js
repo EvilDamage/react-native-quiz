@@ -22,9 +22,9 @@ import SplashScreen from 'react-native-splash-screen';
 const Drawer = createDrawerNavigator();
 const db = SQLite.openDatabase(
   {
-    name: 'SQLiteTests.db',
+    name: 'SQLiteQuiz.db',
     // location: 'default',
-    createFromLocation: '~www/SQLiteTests.db',
+    createFromLocation: '~SQLiteQuiz.db',
   },
   () => {
     console.log('SQLite connected');
@@ -39,10 +39,44 @@ export default class App extends React.Component {
     super();
     this.state = {
       modalVisible: false,
+      query: {},
     };
 
-    db.transaction((tx) => {
-      tx.executeSql('SELECT * from logs', [], (tx, {rows}) => {
+    const getTests = async () => {
+      return fetch('http://tgryl.pl/quiz/tests')
+        .then((response) => response.json())
+        .then((data) => {
+          let query =
+            'INSERT INTO tests (name, id_tests, description, tags, level, numberOfTasks) VALUES ';
+          for (let i = 0; i < data.length; i++) {
+            query =
+              query +
+              "('" +
+              data[i].name +
+              "','" +
+              data[i].id +
+              "','" +
+              data[i].description +
+              "','" +
+              data[i].level +
+              "','" +
+              data[i].tags +
+              "','" +
+              data[i].numberOfTasks +
+              "')";
+            if (i != data.length - 1) {
+              query = query + ',';
+            }
+          }
+          return query;
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+    };
+
+    getTests().then((query) => {
+      db.transaction((tx) => {
         const today = new Date();
         const todayDate =
           today.getDate() +
@@ -50,46 +84,17 @@ export default class App extends React.Component {
           parseInt(today.getMonth() + 1) +
           '-' +
           today.getFullYear();
-
-        if (rows.length != 0 || rows.item(rows.length - 1) == todayDate) {
-          let query =
-            'INSERT INTO testes (name, id_tests, description, tags, level, numberOfTasks) VALUES';
-
-          fetch('http://tgryl.pl/quiz/tests')
-            .then((response) => response.json())
-            .then((json) => {
-              this.setState({quests: json, isLoadedTest: true});
-              for (let i = 0; i < this.state.quests.length; ++i) {
-                query =
-                  query +
-                  "('" +
-                  this.state.quests[i].name +
-                  "','" +
-                  this.state.quests[i].id +
-                  "','" +
-                  this.state.quests[i].description +
-                  "','" +
-                  this.state.quests[i].level +
-                  "','" +
-                  this.state.quests[i].tags +
-                  "','" +
-                  this.state.quests[i].numberOfTasks +
-                  "')";
-                if (i != this.state.quests.length - 1) {
-                  query = query + ',';
-                }
-              }
-            })
-            .catch((error) => {
-              console.error(error);
-            });
-
-          tx.executeSql(query, [], tx);
-          tx.executeSql('INSERT INTO logs (date) VALUES (?)', [todayDate], tx);
-          console.log('data1');
-        } else {
-          console.log('!data');
-        }
+        tx.executeSql('SELECT * from logs', [], (tx, {result}) => {
+          if (result.length !== 0 || result.item(result.length) !== todayDate) {
+            tx.executeSql('DELETE FROM tests', [], tx);
+            tx.executeSql(query, [], tx);
+            tx.executeSql(
+              'INSERT INTO logs (date) VALUES (?)',
+              [todayDate],
+              tx,
+            );
+          }
+        });
       });
     });
   }
@@ -100,15 +105,6 @@ export default class App extends React.Component {
       .then((data) => this.setState({modalVisible: data}));
 
     SplashScreen.hide();
-
-    fetch('http://tgryl.pl/quiz/tests')
-      .then((response) => response.json())
-      .then((json) => {
-        this.setState({quests: json, isLoadedTest: true});
-      })
-      .catch((error) => {
-        console.error(error);
-      });
   }
 
   handleAcceptRules = () => {

@@ -7,9 +7,9 @@ class QuizItem extends React.Component {
       <View style={styles.wrapper}>
         <Text style={styles.title}>{this.props.quest.name}</Text>
         <Text style={styles.tag}>
-          {this.props.quest.tags.map((tag, number) =>
-            number + 1 !== this.props.quest.tags.length ? tag + ', ' : tag,
-          )}
+          {/*{this.props.quest.tags.map((tag, number) =>*/}
+          {/*  number + 1 !== this.props.quest.tags.length ? tag + ', ' : tag,*/}
+          {/*)}*/}
         </Text>
         <Text style={styles.description}>{this.props.quest.description}</Text>
       </View>
