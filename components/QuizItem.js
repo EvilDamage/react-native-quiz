@@ -6,11 +6,7 @@ class QuizItem extends React.Component {
     return (
       <View style={styles.wrapper}>
         <Text style={styles.title}>{this.props.quest.name}</Text>
-        <Text style={styles.tag}>
-          {/*{this.props.quest.tags.map((tag, number) =>*/}
-          {/*  number + 1 !== this.props.quest.tags.length ? tag + ', ' : tag,*/}
-          {/*)}*/}
-        </Text>
+        <Text style={styles.tag}>{this.props.quest.tags}</Text>
         <Text style={styles.description}>{this.props.quest.description}</Text>
       </View>
     );
@@ -27,7 +23,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 25,
     paddingBottom: 10,
-    fontFamily: "BebasNeue-Regular",
+    fontFamily: 'BebasNeue-Regular',
   },
   tag: {
     fontSize: 16,
@@ -37,7 +33,7 @@ const styles = StyleSheet.create({
   description: {
     fontSize: 16,
     color: '#222',
-    fontFamily: "NunitoSans-Regular",
+    fontFamily: 'NunitoSans-Regular',
   },
 });
 

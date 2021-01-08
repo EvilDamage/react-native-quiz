@@ -6,43 +6,17 @@
  * @flow strict-local
  */
 
-import React from 'react';
-import 'react-native-gesture-handler';
-import {createDrawerNavigator} from '@react-navigation/drawer';
-import {getData, storeData} from './storage/AsyncStorage';
+import * as React from 'react';
+import {View, StyleSheet, Text, Button} from 'react-native';
+import NavBar from '../components/NavBar';
 import SQLite from 'react-native-sqlite-storage';
 
-import Home from './views/Home';
-import Test from './views/Test';
-import Result from './views/Result';
-import Modal from './components/Modal';
-import {NavigationContainer} from '@react-navigation/native';
-import SplashScreen from 'react-native-splash-screen';
-import RandomTest from './views/RandomTest';
-
-const Drawer = createDrawerNavigator();
-const db = SQLite.openDatabase(
-  {
-    name: 'SQLiteQuizTest.db',
-    // location: 'default',
-    createFromLocation: '~SQLiteQuizTest.db',
-  },
-  () => {
-    console.log('SQLite connected');
-  },
-  (error) => {
-    console.log('ERROR: ' + error);
-  },
-);
-
-export default class App extends React.Component {
-  constructor() {
-    super();
-    this.state = {
-      modalVisible: false,
-      id: [],
-    };
-
+const db = SQLite.openDatabase({
+  name: 'SQLiteQuizTest.db',
+  createFromLocation: '~SQLiteQuizTest.db',
+});
+export default class RandomTest extends React.Component {
+  handleDownload = () => {
     const getTests = async () => {
       let Id = [];
       return fetch('http://tgryl.pl/quiz/tests')
@@ -86,11 +60,7 @@ export default class App extends React.Component {
         .then((response) => response.json())
         .then((data) => {
           let questionQuery =
-            "('" +
-            id +
-            "','" +
-            JSON.stringify(data).replace(/'/g, ' ') +
-            "')";
+            "('" + id + "','" + JSON.stringify(data).replace(/'/g, ' ') + "')";
           // if (i !== id.length) {
           // questionQuery = questionQuery + ',';
           // } else {
@@ -101,6 +71,22 @@ export default class App extends React.Component {
           console.error(error);
         });
       // }
+    };
+
+    const loadQuestions = async () => {
+      let questionQuery = 'INSERT INTO questions (id_test, question) VALUES ';
+      // for (let i = 0; i < this.state.id.length; i++) {
+      const loop = this.state.id.map(async (id, i) => {
+        return getQuestions(id).then((query) => {
+          questionQuery += query;
+          if (i !== this.state.id.length - 1) {
+            questionQuery += ', ';
+          }
+          return questionQuery;
+        });
+      });
+
+      return await Promise.all(loop);
     };
 
     getTests().then((query) => {
@@ -124,9 +110,9 @@ export default class App extends React.Component {
               // console.log(questionQuery[questionQuery.length - 1]);
               db.transaction((tx) => {
                 tx.executeSql(
-                    'INSERT INTO logs (date) VALUES ( ? )',
-                    [todayDate],
-                    tx,
+                  'INSERT INTO logs (date) VALUES ( ? )',
+                  [todayDate],
+                  tx,
                 );
 
                 tx.executeSql('DELETE FROM questions', [], tx);
@@ -140,50 +126,44 @@ export default class App extends React.Component {
         });
       });
     });
+  }
 
-    const loadQuestions = async () => {
-      let questionQuery = 'INSERT INTO questions (id_test, question) VALUES ';
-      // for (let i = 0; i < this.state.id.length; i++) {
-      const loop = this.state.id.map(async (id, i) => {
-        return getQuestions(id).then((query) => {
-          questionQuery += query;
-          if (i !== this.state.id.length - 1) {
-            questionQuery += ', ';
-          }
-          return questionQuery;
+  handleTest = () => {
+    db.transaction((tx) => {
+      tx.executeSql('SELECT * from tests', [], (tx, {rows}) => {
+        this.props.navigation.navigate('Test', {
+          questId: rows.item(Math.floor(Math.random() * rows.length) + 1).id_tests,
         });
       });
-
-      return await Promise.all(loop);
-    };
+    });
   }
-
-  componentDidMount() {
-    getData()
-      .then((data) => data !== 'MODAL')
-      .then((data) => this.setState({modalVisible: data}));
-
-    SplashScreen.hide();
-  }
-
-  handleAcceptRules = () => {
-    storeData('MODAL').then(() => this.setState({modalVisible: false}));
-  };
 
   render() {
-    const {modalVisible} = this.state;
     return (
-      <>
-        <Modal visible={modalVisible} onPress={this.handleAcceptRules} />
-        <NavigationContainer>
-          <Drawer.Navigator initialRouteName="Home">
-            <Drawer.Screen name="Home" component={Home} />
-            <Drawer.Screen name="Result" component={Result} />
-            <Drawer.Screen name="Test" component={Test} options={{unmountOnBlur:true}}/>
-            <Drawer.Screen name="Random Test" component={RandomTest} />
-          </Drawer.Navigator>
-        </NavigationContainer>
-      </>
+      <View style={{flex: 1, height: 100}}>
+        <NavBar title={'Results'} navigation={this.props.navigation} />
+        <View style={styles.container}>
+          <Text style={styles.text}>Get random test</Text>
+          <Button title="Shuffle!" onPress={this.handleTest} />
+        </View>
+        <View style={styles.container}>
+          <Button title="Download Tests" onPress={this.handleDownload} />
+        </View>
+      </View>
     );
   }
 }
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 18,
+    paddingTop: 35,
+    backgroundColor: '#ffffff',
+  },
+  text: {
+    fontSize: 32,
+    textAlign: 'center',
+    marginTop: 25,
+    marginBottom: 25,
+  },
+});

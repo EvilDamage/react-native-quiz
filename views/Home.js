@@ -21,8 +21,8 @@ import SQLite from 'react-native-sqlite-storage';
 const _ = require('lodash');
 
 const db = SQLite.openDatabase({
-  name: 'SQLiteQuiz.db',
-  createFromLocation: '~SQLiteQuiz.db',
+  name: 'SQLiteQuizTest.db',
+  createFromLocation: '~SQLiteQuizTest.db',
 });
 
 class Home extends React.Component {
@@ -38,24 +38,13 @@ class Home extends React.Component {
     return db.transaction((tx) => {
       tx.executeSql('SELECT * from tests', [], (tx, {rows}) => {
         let items = [];
-        console.log('Ilosc rows: ' + rows.length);
+        console.log('Loaded quests: ' + rows.length);
         for (let i = 0; i < rows.length; i++) {
           items.push(rows.item(i));
         }
-        // console.log(items);
         this.setState({quests: _.shuffle(items), isLoadedTest: true});
       });
     });
-
-    // return fetch('http://tgryl.pl/quiz/tests')
-    //   .then((response) => response.json())
-    //   .then((json) => {
-    //     console.log(json)
-    //     this.setState({quests: _.shuffle(json), isLoadedTest: true});
-    //   })
-    //   .catch((error) => {
-    //     console.error(error);
-    //   });
   }
 
   render() {
@@ -71,7 +60,9 @@ class Home extends React.Component {
               <TouchableOpacity
                 key={number}
                 onPress={() => {
-                  this.props.navigation.navigate('Test', {questId: quest.id});
+                  this.props.navigation.navigate('Test', {
+                    questId: quest.id_tests,
+                  });
                 }}>
                 <QuizItem quest={quest} />
               </TouchableOpacity>

@@ -18,6 +18,12 @@ import {
 import * as Progress from 'react-native-progress';
 
 import NavBar from '../components/NavBar';
+import SQLite from 'react-native-sqlite-storage';
+
+const db = SQLite.openDatabase({
+  name: 'SQLiteQuizTest.db',
+  createFromLocation: '~SQLiteQuizTest.db',
+});
 
 class Test extends React.Component {
   constructor(props: Object) {
@@ -39,26 +45,44 @@ class Test extends React.Component {
     );
 
     this.props.navigation.addListener('focus', () => {
-      this.setState((prevState) => ({
+      this.setState(() => ({
         currentTask: 0,
         points: 0,
         quests: {},
         isLoadedTest: false,
       }));
-
-      fetch('http://tgryl.pl/quiz/test/' + this.props.route.params.questId)
-        .then((response) => response.json())
-        .then((json) => {
-          this.setState({
-            quests: json,
-            isLoadedTest: true,
-            timer: json.tasks[this.state.currentTask].duration,
-          });
-        })
-        .catch((error) => {
-          console.error(error);
-        });
     });
+
+    console.log(this.state.currentTask)
+
+    db.transaction((tx) => {
+      tx.executeSql('SELECT * from questions', [], (tx, {rows}) => {
+        console.log(rows);
+        for (let i = 0; i < rows.length; i++) {
+          if (rows.item(i).id_test == this.props.route.params.questId) {
+            this.setState({
+              quests: JSON.parse(rows.item(i).question),
+              isLoadedTest: true,
+              timer: 30,
+            });
+            // console.log(JSON.parse(rows.item(i).question));
+          }
+        }
+      });
+    });
+    // fetch('http://tgryl.pl/quiz/test/' + this.props.route.params.questId)
+    //   .then((response) => response.json())
+    //   .then((json) => {
+    //     console.log(json)
+    //     this.setState({
+    //       quests: json,
+    //       isLoadedTest: true,
+    //       timer: json.tasks[this.state.currentTask].duration,
+    //     });
+    //   })
+    //   .catch((error) => {
+    //     console.error(error);
+    //   });
   }
 
   componentDidUpdate() {
