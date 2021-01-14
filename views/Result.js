@@ -30,20 +30,14 @@ export default class Result extends React.Component {
       HeadTable: ['Nick', 'Points', 'Type', 'Date'],
       refreshing: false,
       items: '',
-      // DataTable: [
-      //   ['nick', '18/20', 'test1', '12-03-2007'],
-      //   ['nick', '18/20', 'test1', '12-03-2007'],
-      //   ['nick', '18/20', 'test1', '12-03-2007'],
-      //   ['nick', '18/20', 'test1', '12-03-2007'],
-      // ],
     };
   }
 
   renderItem = ({item}) => {
-    const {nick, score, total, type, date} = item;
+    const {nick, score, total, type, createdOn} = item;
     return (
       <Row
-        data={[nick, score + '/' + total, type, date]}
+        data={[nick, score + '/' + total, type, createdOn]}
         style={styles.ItemStyle}
         borderStyle={{borderWidth: 1, borderColor: 'grey'}}
         textStyle={styles.TableText}
@@ -52,6 +46,15 @@ export default class Result extends React.Component {
   };
 
   handleOnRefresh = () => {
+    fetch('http://tgryl.pl/quiz/results?last=25')
+      .then((response) => response.json())
+      .then((json) => {
+        this.setState({items: json.reverse()});
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+
     this.setState(
       {
         refreshing: true,

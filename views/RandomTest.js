@@ -98,45 +98,39 @@ export default class RandomTest extends React.Component {
           parseInt(today.getMonth() + 1) +
           '-' +
           today.getFullYear();
-        tx.executeSql('SELECT * from logs ', [], (tx, {rows}) => {
-          if (
-            rows.length === 0 ||
-            rows.item(rows.length - 1).date !== todayDate
-          ) {
-            tx.executeSql('DELETE FROM tests', [], tx);
-            tx.executeSql(query, [], tx);
+        tx.executeSql('DELETE FROM tests', [], tx);
+        tx.executeSql(query, [], tx);
 
-            loadQuestions().then((questionQuery) => {
-              // console.log(questionQuery[questionQuery.length - 1]);
-              db.transaction((tx) => {
-                tx.executeSql(
-                  'INSERT INTO logs (date) VALUES ( ? )',
-                  [todayDate],
-                  tx,
-                );
+        loadQuestions().then((questionQuery) => {
+          // console.log(questionQuery[questionQuery.length - 1]);
+          db.transaction((tx) => {
+            tx.executeSql(
+              'INSERT INTO logs (date) VALUES ( ? )',
+              [todayDate],
+              tx,
+            );
 
-                tx.executeSql('DELETE FROM questions', [], tx);
-                tx.executeSql(questionQuery[questionQuery.length - 1], [], tx);
-                console.log('New data downloaded1');
-              });
-            });
-
-            console.log('New data downloaded');
-          }
+            tx.executeSql('DELETE FROM questions', [], tx);
+            tx.executeSql(questionQuery[questionQuery.length - 1], [], tx);
+            console.log('New questions');
+          });
         });
+
+        console.log('New categories');
       });
     });
-  }
+  };
 
   handleTest = () => {
     db.transaction((tx) => {
       tx.executeSql('SELECT * from tests', [], (tx, {rows}) => {
         this.props.navigation.navigate('Test', {
-          questId: rows.item(Math.floor(Math.random() * rows.length) + 1).id_tests,
+          questId: rows.item(Math.floor(Math.random() * rows.length) + 1)
+            .id_tests,
         });
       });
     });
-  }
+  };
 
   render() {
     return (

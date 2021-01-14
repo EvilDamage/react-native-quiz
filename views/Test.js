@@ -19,6 +19,8 @@ import * as Progress from 'react-native-progress';
 
 import NavBar from '../components/NavBar';
 import SQLite from 'react-native-sqlite-storage';
+const _ = require('lodash');
+import NetInfo from '@react-native-community/netinfo';
 
 const db = SQLite.openDatabase({
   name: 'SQLiteQuizTest.db',
@@ -35,7 +37,12 @@ class Test extends React.Component {
       quests: {},
       isLoadedTest: false,
       name: '',
+      internetConnection: false,
     };
+
+    NetInfo.fetch().then((netInfo) => {
+      this.state({internetConnection: netInfo.isConnected});
+    });
   }
 
   componentDidMount() {
@@ -53,11 +60,10 @@ class Test extends React.Component {
       }));
     });
 
-    console.log(this.state.currentTask)
+    console.log(this.state.currentTask);
 
     db.transaction((tx) => {
       tx.executeSql('SELECT * from questions', [], (tx, {rows}) => {
-        console.log(rows);
         for (let i = 0; i < rows.length; i++) {
           if (rows.item(i).id_test == this.props.route.params.questId) {
             this.setState({
@@ -186,19 +192,25 @@ class Test extends React.Component {
                 <Text style={styles.points}>
                   You got: {this.state.points} points
                 </Text>
-                <TextInput
-                  style={{
-                    height: 40,
-                    width: 300,
-                    marginTop: 20,
-                    marginBottom: 20,
-                    borderColor: 'gray',
-                    borderWidth: 1,
-                  }}
-                  value={this.state.name}
-                  onChangeText={(value) => this.handleChange(value)}
-                />
-                <Button title="Check the results" onPress={this.handleSubmit} />
+
+                <>
+                  <TextInput
+                    style={{
+                      height: 40,
+                      width: 300,
+                      marginTop: 20,
+                      marginBottom: 20,
+                      borderColor: 'gray',
+                      borderWidth: 1,
+                    }}
+                    value={this.state.name}
+                    onChangeText={(value) => this.handleChange(value)}
+                  />
+                  <Button
+                    title="Check the results"
+                    onPress={this.handleSubmit}
+                  />
+                </>
               </View>
             </View>
           </View>

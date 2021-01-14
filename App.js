@@ -86,11 +86,7 @@ export default class App extends React.Component {
         .then((response) => response.json())
         .then((data) => {
           let questionQuery =
-            "('" +
-            id +
-            "','" +
-            JSON.stringify(data).replace(/'/g, ' ') +
-            "')";
+            "('" + id + "','" + JSON.stringify(data).replace(/'/g, ' ') + "')";
           // if (i !== id.length) {
           // questionQuery = questionQuery + ',';
           // } else {
@@ -124,18 +120,18 @@ export default class App extends React.Component {
               // console.log(questionQuery[questionQuery.length - 1]);
               db.transaction((tx) => {
                 tx.executeSql(
-                    'INSERT INTO logs (date) VALUES ( ? )',
-                    [todayDate],
-                    tx,
+                  'INSERT INTO logs (date) VALUES ( ? )',
+                  [todayDate],
+                  tx,
                 );
 
                 tx.executeSql('DELETE FROM questions', [], tx);
                 tx.executeSql(questionQuery[questionQuery.length - 1], [], tx);
-                console.log('New data downloaded1');
+                console.log('New questions');
               });
             });
 
-            console.log('New data downloaded');
+            console.log('New categories');
           }
         });
       });
@@ -179,7 +175,11 @@ export default class App extends React.Component {
           <Drawer.Navigator initialRouteName="Home">
             <Drawer.Screen name="Home" component={Home} />
             <Drawer.Screen name="Result" component={Result} />
-            <Drawer.Screen name="Test" component={Test} options={{unmountOnBlur:true}}/>
+            <Drawer.Screen
+              name="Test"
+              component={Test}
+              options={{unmountOnBlur: true}}
+            />
             <Drawer.Screen name="Random Test" component={RandomTest} />
           </Drawer.Navigator>
         </NavigationContainer>
